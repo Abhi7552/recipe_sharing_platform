@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: #fbf6ec;
+  }
+  ::selection {
+    background-color: #e4a628;
+    color: #2b2420;
+  }
+  :focus-visible {
+    outline: 2px solid #c2461f;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+@layer components {
+  /* The recipe-card "punch hole" signature: a stitched top edge like an index card. */
+  .card-stitch {
+    position: relative;
+    background-color: #fffdf8;
+    background-image: linear-gradient(to bottom, transparent 34px, rgba(43, 36, 32, 0.08) 34px, rgba(43, 36, 32, 0.08) 35px, transparent 35px);
+  }
+  .card-stitch::before {
+    content: '';
+    position: absolute;
+    top: 17px;
+    left: 16px;
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: #fbf6ec;
+    box-shadow: inset 0 1px 2px rgba(43, 36, 32, 0.35), 0 0 0 1.5px rgba(43, 36, 32, 0.15);
+  }
+
+  .ingredient-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    padding: 0.28rem 0.6rem;
+    border-radius: 999px;
+    background: #f2ead8;
+    border: 1px solid rgba(43, 36, 32, 0.1);
+    color: #4a3f34;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-basil px-6 py-3 font-body font-semibold text-paper transition-all duration-200 hover:bg-basil-dark hover:-translate-y-0.5 active:translate-y-0 shadow-card;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink/15 bg-transparent px-6 py-3 font-body font-semibold text-ink transition-all duration-200 hover:border-ink/40 hover:-translate-y-0.5 active:translate-y-0;
+  }
+  .input-field {
+    @apply w-full rounded-lg border border-ink/15 bg-white/70 px-4 py-2.5 font-body text-ink placeholder:text-ink/40 focus:border-basil focus:ring-1 focus:ring-basil transition-colors;
+  }
+  .label-eyebrow {
+    @apply font-mono text-[0.7rem] uppercase tracking-[0.16em] text-basil/80;
+  }
+}
+
+@keyframes steam {
+  0%, 100% { transform: translateY(0) scaleX(1); opacity: 0.5; }
+  50% { transform: translateY(-6px) scaleX(1.15); opacity: 0.9; }
+}
+.animate-steam {
+  animation: steam 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
