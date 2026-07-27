@@ -1,0 +1,232 @@
+{
+  "info": {
+    "name": "Recipe Sharing Platform API",
+    "_postman_id": "b6f3a1e0-1c2d-4e9f-9a3b-recipe-platform",
+    "description": "Endpoints for The Shared Table recipe sharing platform backend. Set the `baseUrl` variable to your running API (default http://localhost:5000/api). Running Register or Login automatically saves the JWT into the `token` variable for subsequent requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "recipeId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Abhishek Kumar\",\n  \"email\": \"abhishek1234@gmail.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set('token', data.token);",
+                  "    console.log('Saved token:', data.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"abhishek1234@gmail.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set('token', data.token);",
+                  "    console.log('Saved token:', data.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get current user (Me)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recipes",
+      "item": [
+        {
+          "name": "List recipes (browse/search)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/recipes?q=&ingredient=&tag=&cuisine=&difficulty=&sort=newest&page=1&limit=12",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes"],
+              "query": [
+                { "key": "q", "value": "", "description": "full-text search on title/description/tags/ingredients" },
+                { "key": "ingredient", "value": "", "description": "search recipes containing this ingredient" },
+                { "key": "tag", "value": "", "description": "filter by exact tag" },
+                { "key": "cuisine", "value": "", "description": "filter by cuisine" },
+                { "key": "difficulty", "value": "", "description": "easy | medium | hard" },
+                { "key": "sort", "value": "newest", "description": "newest | rating | quickest" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "12" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List recipes by author (Profile page)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/recipes?author=REPLACE_WITH_USER_ID&limit=50&sort=newest",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes"],
+              "query": [
+                { "key": "author", "value": "REPLACE_WITH_USER_ID" },
+                { "key": "limit", "value": "50" },
+                { "key": "sort", "value": "newest" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get distinct tags",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/recipes/tags", "host": ["{{baseUrl}}"], "path": ["recipes", "tags"] }
+          }
+        },
+        {
+          "name": "Get single recipe",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/recipes/{{recipeId}}", "host": ["{{baseUrl}}"], "path": ["recipes", "{{recipeId}}"] }
+          }
+        },
+        {
+          "name": "Create recipe (with image)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "title", "value": "Weeknight Butter Chicken", "type": "text" },
+                { "key": "description", "value": "A creamy, no-fuss butter chicken.", "type": "text" },
+                { "key": "cuisine", "value": "Indian", "type": "text" },
+                { "key": "difficulty", "value": "medium", "type": "text" },
+                { "key": "prepTimeMinutes", "value": "20", "type": "text" },
+                { "key": "cookTimeMinutes", "value": "35", "type": "text" },
+                { "key": "servings", "value": "4", "type": "text" },
+                {
+                  "key": "ingredients",
+                  "value": "[{\"name\":\"boneless chicken thighs, cubed\",\"quantity\":\"600g\"},{\"name\":\"butter\",\"quantity\":\"4 tbsp\"},{\"name\":\"crushed tomatoes\",\"quantity\":\"400g\"}]",
+                  "type": "text",
+                  "description": "JSON string array of { name, quantity }"
+                },
+                {
+                  "key": "steps",
+                  "value": "[\"Marinate the chicken.\",\"Sear the chicken.\",\"Simmer everything together.\"]",
+                  "type": "text",
+                  "description": "JSON string array of step strings"
+                },
+                {
+                  "key": "tags",
+                  "value": "[\"weeknight\",\"chicken\",\"curry\"]",
+                  "type": "text",
+                  "description": "JSON string array of tag strings"
+                },
+                { "key": "image", "type": "file", "src": "", "description": "optional: attach a JPEG/PNG/WEBP/GIF, max 5MB" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/recipes", "host": ["{{baseUrl}}"], "path": ["recipes"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set('recipeId', data.recipe._id);",
+                  "    console.log('Saved recipeId:', data.recipe._id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update recipe",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "title", "value": "Weeknight Butter Chicken (Updated)", "type": "text" },
+                { "key": "prepTimeMinutes", "value": "15", "type": "text" },
+                { "key": "image", "type": "file", "src": "", "description": "optional: replace the photo" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/recipes/{{recipeId}}", "host": ["{{baseUrl}}"], "path": ["recipes", "{{recipeId}}"] }
+          }
+        },
+        {
+          "name": "Delete recipe",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/recipes/{{recipeId}}", "host": ["{{baseUrl}}"], "path": ["recipes", "{{recipeId}}"] }
+          }
+        },
+        {
+          "name": "Add/update review & rating",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Turned out great, will make again!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/recipes/{{recipeId}}/reviews", "host": ["{{baseUrl}}"], "path": ["recipes", "{{recipeId}}", "reviews"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      }
+    }
+  ]
+}

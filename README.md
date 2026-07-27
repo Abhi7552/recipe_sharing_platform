@@ -99,7 +99,32 @@ Bugs fixed / gaps closed since the initial build:
 - **Performance**: added missing MongoDB indexes (`author`, `tags`, `averageRating`) for the query patterns this API actually uses; added `compression` middleware; static uploads now cache for 7 days.
 - **Observability**: added `morgan` request logging (dev-friendly format locally, combined/production format when deployed).
 
-## Deploying with Docker
+## Deploying to Render.com
+
+This repo includes a `render.yaml` Blueprint at the project root that deploys both services correctly as a monorepo — this is almost always what's missing when a Render deploy from this kind of repo layout fails (Render looks for `package.json` at the repo root by default and won't find it, since this project has `backend/` and `frontend/` subfolders instead).
+
+**Steps:**
+1. Push this repo to GitHub/GitLab.
+2. In the Render Dashboard: **New → Blueprint**, connect the repo. Render detects `render.yaml` automatically.
+3. When prompted, provide the one `sync: false` variable: **`MONGODB_URI`** (your Atlas connection string — same as in local `.env`, and remember to whitelist `0.0.0.0/0` in Atlas's Network Access, since Render's outbound IPs aren't static on the free/starter plan).
+4. Deploy. `CLIENT_URL` (backend) and `VITE_API_URL` (frontend, baked in at build time) are wired to each other's live `.onrender.com` URLs automatically via `fromService` — no manual copy-pasting between dashboards.
+
+**What the Blueprint sets up:**
+- `recipe-platform-backend` — a Node web service, `rootDir: backend`, health-checked at `/api/health`
+- `recipe-platform-frontend` — a static site, `rootDir: frontend`, built with Vite, with a rewrite rule so React Router's client-side routes don't 404 on refresh
+
+**Important — uploaded images and Render's filesystem:** Render's default web service disk is ephemeral; anything written to `backend/uploads` is wiped on every redeploy or restart. For real production use, either attach a paid persistent Disk (there's a commented-out `disk:` block in `render.yaml` to uncomment) or, better, move image storage to S3/Cloudinary so it survives deploys and scales across instances. Fine to ignore for a demo/portfolio deployment.
+
+If you'd rather configure the two services manually through the dashboard instead of using the Blueprint, the equivalent settings are:
+| | Backend (Web Service) | Frontend (Static Site) |
+|---|---|---|
+| Root Directory | `backend` | `frontend` |
+| Build Command | `npm install` | `npm install && npm run build` |
+| Start Command | `npm start` | — |
+| Publish Directory | — | `dist` |
+| Env vars | `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_URL` (frontend's URL) | `VITE_API_URL` (backend's URL + `/api`) |
+
+
 
 Each service has a `Dockerfile`, and `docker-compose.yml` at the project root wires them together with MongoDB for a production-like local run:
 

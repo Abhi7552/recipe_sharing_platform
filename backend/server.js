@@ -1,9 +1,5 @@
 require('dotenv').config();
 
-if (process.env.FORCE_GOOGLE_DNS === 'true') {
-  require('dns').setServers(['8.8.8.8', '8.8.4.4']);
-}
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -21,6 +17,8 @@ const { apiLimiter, authLimiter } = require('./middleware/rateLimiters');
 const isProduction = process.env.NODE_ENV === 'production';
 const app = express();
 
+// Behind a reverse proxy (Render, Railway, Nginx, etc.) in production, so rate
+// limiting and logging see the real client IP rather than the proxy's.
 if (isProduction) app.set('trust proxy', 1);
 
 app.use(helmet());

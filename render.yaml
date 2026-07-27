@@ -1,0 +1,65 @@
+services:
+  # --- Backend API (Node web service) ---
+  - type: web
+    name: recipe-platform-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: MONGODB_URI
+        sync: false # set your MongoDB Atlas connection string in the Render dashboard
+      - key: JWT_SECRET
+        generateValue: true # Render generates a strong random secret for you
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FORCE_GOOGLE_DNS
+        value: 'false'
+      # Auto-filled with the frontend's live URL once both services exist, so CORS
+      # is always correct without manually copy-pasting URLs between dashboards.
+      - key: CLIENT_URL
+        fromService:
+          type: web
+          name: recipe-platform-frontend
+          envVarKey: RENDER_EXTERNAL_URL
+    # Uploaded recipe photos are written to backend/uploads, but Render's default
+    # filesystem is ephemeral — files are wiped on every deploy/restart. Uncomment
+    # this to attach a persistent disk (requires a paid plan), or better, migrate
+    # image storage to S3/Cloudinary for production (see README).
+    # disk:
+    #   name: uploads
+    #   mountPath: /opt/render/project/src/uploads
+    #   sizeGB: 1
+
+  # --- Frontend (static site, built with Vite) ---
+  - type: web
+    name: recipe-platform-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: >-
+      npm install &&
+      VITE_API_URL="${BACKEND_URL}/api" npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
+      # Resolved to the backend's live URL at build time and interpolated into
+      # buildCommand above, so VITE_API_URL is always correct with no manual step.
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: recipe-platform-backend
+          envVarKey: RENDER_EXTERNAL_URL
+    routes:
+      # Client-side routing (React Router) — unknown paths fall back to index.html
+      # instead of 404ing.
+      - type: rewrite
+        source: /*
+        destination: /index.html

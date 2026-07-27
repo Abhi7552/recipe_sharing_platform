@@ -1,44 +1,44 @@
 # Dependencies
 node_modules/
-client/node_modules/
-server/node_modules/
+backend/node_modules/
+frontend/node_modules/
 
-# Production / Build outputs
-client/dist/
+# Production / build outputs
+frontend/dist/
 dist/
 build/
 
-# Environment files (contains secrets/API keys)
+# Environment files (contain secrets — never commit these)
 .env
 .env.local
 .env.development
 .env.production
-client/.env
-client/.env.*
-server/.env
-server/.env.production
-server/.env.*
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
 !.env.example
-!server/.env.example
+!backend/.env.example
+!frontend/.env.example
+
+# User-uploaded recipe photos (local dev only — not meant to be versioned)
+backend/uploads/*
+!backend/uploads/.gitkeep
 
 # Logs
 logs/
-server/logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Editor & System files
+# Editor & OS files
 .vscode/
-.vscode/settings.json
 .idea/
 .DS_Store
 Thumbs.db
 
-# Cache, Coverage & Temp
+# Cache & misc
 coverage/
-uploads/
-temp/
 .eslintcache
 *.tsbuildinfo
