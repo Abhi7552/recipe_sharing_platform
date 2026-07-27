@@ -47,6 +47,9 @@ const recipeSchema = new mongoose.Schema(
 );
 
 recipeSchema.index({ title: 'text', description: 'text', tags: 'text', 'ingredients.name': 'text' });
+recipeSchema.index({ author: 1, createdAt: -1 });
+recipeSchema.index({ tags: 1 });
+recipeSchema.index({ averageRating: -1, ratingCount: -1 });
 
 recipeSchema.methods.recalculateRating = function recalculateRating() {
   if (!this.reviews.length) {

@@ -1,10 +1,17 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
 const Recipe = require('../models/Recipe');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
 const router = express.Router();
+
+// Escapes RegExp special characters in user-supplied search terms before building
+// a $regex filter, preventing regex-injection and ReDoS via crafted query params.
+function escapeRegex(str) {
+  return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 // GET /api/recipes - list + search + filter
 // Query params: q (text search), ingredient, tag, cuisine, difficulty, sort, page, limit
@@ -14,11 +21,16 @@ router.get('/', optionalAuth, async (req, res) => {
     const filter = {};
 
     if (q) filter.$text = { $search: q };
-    if (ingredient) filter['ingredients.name'] = { $regex: ingredient, $options: 'i' };
-    if (tag) filter.tags = tag.toLowerCase();
-    if (cuisine) filter.cuisine = { $regex: `^${cuisine}$`, $options: 'i' };
+    if (ingredient) filter['ingredients.name'] = { $regex: escapeRegex(ingredient), $options: 'i' };
+    if (tag) filter.tags = String(tag).toLowerCase();
+    if (cuisine) filter.cuisine = { $regex: `^${escapeRegex(cuisine)}$`, $options: 'i' };
     if (difficulty) filter.difficulty = difficulty;
-    if (author) filter.author = author;
+    if (author) {
+      if (!mongoose.Types.ObjectId.isValid(author)) {
+        return res.status(400).json({ message: 'Invalid author id.' });
+      }
+      filter.author = author;
+    }
 
     const sortMap = {
       newest: { createdAt: -1 },

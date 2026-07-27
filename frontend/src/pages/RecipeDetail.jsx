@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import client from '../api/client';
 import RatingStars from '../components/RatingStars';
 import { useAuth } from '../context/AuthContext';
+import { resolveImageUrl } from '../utils/resolveImageUrl';
 
 export default function RecipeDetail() {
   const { id } = useParams();
@@ -102,7 +103,7 @@ export default function RecipeDetail() {
       <div className="card-stitch overflow-hidden rounded-2xl border border-ink/10 shadow-card">
         <div className="h-72 w-full bg-paperDeep sm:h-96">
           {recipe.imageUrl ? (
-            <img src={recipe.imageUrl} alt={recipe.title} className="h-full w-full object-cover" />
+            <img src={resolveImageUrl(recipe.imageUrl)} alt={recipe.title} className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-paperDeep to-sage/40">
               <span className="font-display text-4xl italic text-ink/25">no photo yet</span>

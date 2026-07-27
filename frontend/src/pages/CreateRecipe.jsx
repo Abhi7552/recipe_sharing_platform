@@ -32,6 +32,13 @@ export default function CreateRecipe() {
   function handleImageChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    const maxBytes = 5 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setError('That image is larger than 5MB — please choose a smaller file.');
+      e.target.value = '';
+      return;
+    }
+    setError('');
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
   }

@@ -14,17 +14,24 @@ const storage = multer.diskStorage({
   },
 });
 
-const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+const allowedExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
 
 function fileFilter(_req, file, cb) {
-  if (allowedTypes.has(file.mimetype)) return cb(null, true);
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (allowedMimeTypes.has(file.mimetype) && allowedExtensions.has(ext)) {
+    return cb(null, true);
+  }
   cb(new Error('Only JPEG, PNG, WEBP, or GIF images are allowed.'));
 }
 
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+    files: 1,
+  },
 });
 
 module.exports = upload;

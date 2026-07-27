@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import RatingStars from './RatingStars';
+import { resolveImageUrl } from '../utils/resolveImageUrl';
 
 const difficultyLabel = { easy: 'Easy', medium: 'Medium', hard: 'Ambitious' };
 
@@ -14,8 +15,9 @@ export default function RecipeCard({ recipe }) {
       <div className="relative h-44 w-full overflow-hidden bg-paperDeep pt-[3px]">
         {recipe.imageUrl ? (
           <img
-            src={recipe.imageUrl}
+            src={resolveImageUrl(recipe.imageUrl)}
             alt={recipe.title}
+            loading="lazy"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
