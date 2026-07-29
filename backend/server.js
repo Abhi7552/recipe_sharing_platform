@@ -1,5 +1,23 @@
 require('dotenv').config();
 
+// Some Windows/corporate networks fail Node's SRV DNS lookups for `mongodb+srv://`
+// URIs even though the OS resolver works fine. Opt into forcing Google's DNS via
+// FORCE_GOOGLE_DNS=true in .env if you hit that; leave unset in normal production
+// environments so the platform's own DNS is used.
+if (process.env.FORCE_GOOGLE_DNS === 'true') {
+  require('dns').setServers(['8.8.8.8', '8.8.4.4']);
+}
+
+// Validate required environment variables up front so misconfiguration fails fast
+// with a clear message instead of surfacing as a confusing runtime error later.
+const REQUIRED_ENV = ['MONGODB_URI', 'JWT_SECRET'];
+const missingEnv = REQUIRED_ENV.filter((key) => !process.env[key]);
+if (missingEnv.length > 0) {
+  console.error(`Missing required environment variable(s): ${missingEnv.join(', ')}`);
+  console.error('Copy backend/.env.example to backend/.env and fill in real values.');
+  process.exit(1);
+}
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -28,8 +46,12 @@ app.use(morgan(isProduction ? 'combined' : 'dev'));
 // CLIENT_URL may be a single origin or a comma-separated list (e.g. staging + prod).
 const allowedOrigins = (process.env.CLIENT_URL || '*')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/+$/, ''))
   .filter(Boolean);
+
+if (isProduction && allowedOrigins.includes('*')) {
+  console.warn('Warning: CLIENT_URL is not set — CORS is allowing all origins. Set CLIENT_URL in production.');
+}
 
 app.use(
   cors({
@@ -52,6 +74,14 @@ app.use(
 );
 
 app.use('/api', apiLimiter);
+app.get('/', (_req, res) =>
+  res.json({
+    name: 'Recipe Sharing Platform API',
+    status: 'running',
+    health: '/api/health',
+    docs: 'See README.md for the full endpoint list.',
+  })
+);
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/recipes', recipeRoutes);
